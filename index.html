@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gold Trader Pro — P&L Tracker</title>
+  <meta name="description" content="Premium gold trading profit and loss tracker. Track your XAUUSD trades, hit your daily £100 goal, and analyze performance.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪙</text></svg>">
+</head>
+<body>
+
+  <!-- Particle Background Canvas -->
+  <canvas id="particles-canvas"></canvas>
+
+  <!-- ========== NAVIGATION ========== -->
+  <nav id="main-nav">
+    <div class="nav-inner">
+      <div class="nav-brand">
+        <span class="brand-icon">◈</span>
+        <span class="brand-text">GOLD<span class="brand-accent">TRADER</span> PRO</span>
+      </div>
+      <div class="nav-links">
+        <button class="nav-link active" data-view="dashboard" id="nav-dashboard">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          <span>Dashboard</span>
+        </button>
+        <button class="nav-link" data-view="daily" id="nav-daily">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span>Daily</span>
+        </button>
+        <button class="nav-link" data-view="weekly" id="nav-weekly">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16l4-8 4 4 4-6"/></svg>
+          <span>Weekly</span>
+        </button>
+        <button class="nav-link" data-view="analytics" id="nav-analytics">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/><path d="M12 12l6-6"/></svg>
+          <span>Analytics</span>
+        </button>
+        <button class="nav-link" data-view="settings" id="nav-settings">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+          <span>Settings</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ========== MAIN CONTENT ========== -->
+  <main id="app-main">
+
+    <!-- ===== DASHBOARD VIEW ===== -->
+    <section id="view-dashboard" class="view active">
+      <div class="view-content">
+        <!-- Hero Stats Row -->
+        <div class="stats-row">
+          <div class="stat-card animate-in" id="stat-today">
+            <div class="stat-label">Today's P&L</div>
+            <div class="stat-value" id="stat-today-value">£0.00</div>
+            <div class="stat-sub" id="stat-today-trades">0 trades</div>
+            <div class="stat-indicator" id="stat-today-indicator"></div>
+          </div>
+          <div class="stat-card animate-in" id="stat-week" style="animation-delay:0.1s">
+            <div class="stat-label">This Week</div>
+            <div class="stat-value" id="stat-week-value">£0.00</div>
+            <div class="stat-sub" id="stat-week-goal">£0 / £700 goal</div>
+            <div class="stat-indicator" id="stat-week-indicator"></div>
+          </div>
+          <div class="stat-card animate-in" id="stat-month" style="animation-delay:0.2s">
+            <div class="stat-label">This Month</div>
+            <div class="stat-value" id="stat-month-value">£0.00</div>
+            <div class="stat-sub" id="stat-month-days">0 trading days</div>
+            <div class="stat-indicator" id="stat-month-indicator"></div>
+          </div>
+          <div class="stat-card animate-in gold-glow" id="stat-streak" style="animation-delay:0.3s">
+            <div class="stat-label">🔥 Goal Streak</div>
+            <div class="stat-value" id="stat-streak-value">0</div>
+            <div class="stat-sub">consecutive days</div>
+            <div class="stat-indicator positive"></div>
+          </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="charts-row">
+          <div class="chart-card large animate-in" style="animation-delay:0.4s">
+            <div class="card-header">
+              <h2>P&L Performance</h2>
+              <div class="chart-period-toggle">
+                <button class="period-btn active" data-period="7">7D</button>
+                <button class="period-btn" data-period="14">14D</button>
+                <button class="period-btn" data-period="30">30D</button>
+                <button class="period-btn" data-period="all">All</button>
+              </div>
+            </div>
+            <div class="chart-container">
+              <canvas id="pnl-line-chart"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-card small animate-in" style="animation-delay:0.5s">
+            <div class="card-header">
+              <h2>Today's Goal</h2>
+            </div>
+            <div class="goal-ring-container">
+              <svg class="goal-ring" viewBox="0 0 200 200">
+                <circle class="goal-ring-bg" cx="100" cy="100" r="85"/>
+                <circle class="goal-ring-progress" id="goal-ring-progress" cx="100" cy="100" r="85"/>
+              </svg>
+              <div class="goal-ring-text">
+                <span class="goal-percent" id="goal-percent">0%</span>
+                <span class="goal-amount" id="goal-amount">£0 / £100</span>
+              </div>
+            </div>
+            <div class="goal-status" id="goal-status">Start trading to hit your goal!</div>
+          </div>
+        </div>
+
+        <!-- Recent Trades -->
+        <div class="card animate-in" style="animation-delay:0.6s">
+          <div class="card-header">
+            <h2>Recent Trades</h2>
+            <button class="btn-text" id="btn-view-all-trades" data-view="daily">View All →</button>
+          </div>
+          <div class="table-container">
+            <table class="trades-table" id="recent-trades-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Amount</th>
+                  <th>Notes</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="recent-trades-body">
+                <tr class="empty-row"><td colspan="5">No trades yet. Click + to add your first trade!</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== DAILY VIEW ===== -->
+    <section id="view-daily" class="view">
+      <div class="view-content">
+        <!-- Date Navigator -->
+        <div class="date-navigator animate-in">
+          <button class="date-nav-btn" id="date-prev">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <div class="date-display">
+            <input type="date" id="date-picker" class="date-input">
+            <span class="date-label" id="date-label">Today</span>
+          </div>
+          <button class="date-nav-btn" id="date-next">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+          <button class="date-nav-btn today-btn" id="date-today">Today</button>
+        </div>
+
+        <!-- Daily Stats -->
+        <div class="stats-row small">
+          <div class="stat-card mini animate-in">
+            <div class="stat-label">Daily P&L</div>
+            <div class="stat-value" id="daily-pnl">£0.00</div>
+          </div>
+          <div class="stat-card mini animate-in" style="animation-delay:0.1s">
+            <div class="stat-label">Trades</div>
+            <div class="stat-value" id="daily-trades-count">0</div>
+          </div>
+          <div class="stat-card mini animate-in" style="animation-delay:0.2s">
+            <div class="stat-label">Win Rate</div>
+            <div class="stat-value" id="daily-win-rate">0%</div>
+          </div>
+          <div class="stat-card mini animate-in" style="animation-delay:0.3s">
+            <div class="stat-label">Goal Status</div>
+            <div class="stat-value" id="daily-goal-status">—</div>
+          </div>
+        </div>
+
+        <!-- Daily Trades Table -->
+        <div class="card animate-in" style="animation-delay:0.4s">
+          <div class="card-header">
+            <h2>Trades</h2>
+            <button class="btn-gold btn-sm" id="btn-add-trade-daily">+ Add Trade</button>
+          </div>
+          <div class="table-container">
+            <table class="trades-table" id="daily-trades-table">
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Type</th>
+                  <th>Direction</th>
+                  <th>Entry</th>
+                  <th>Exit</th>
+                  <th>Lots</th>
+                  <th>P&L</th>
+                  <th>Notes</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="daily-trades-body">
+                <tr class="empty-row"><td colspan="9">No trades for this day</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== WEEKLY VIEW ===== -->
+    <section id="view-weekly" class="view">
+      <div class="view-content">
+        <!-- Weekly Chart -->
+        <div class="chart-card animate-in">
+          <div class="card-header">
+            <h2>Weekly Performance</h2>
+            <div class="week-navigator">
+              <button class="date-nav-btn" id="week-prev">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+              </button>
+              <span id="week-range-label">This Week</span>
+              <button class="date-nav-btn" id="week-next">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="chart-container">
+            <canvas id="weekly-bar-chart"></canvas>
+          </div>
+        </div>
+
+        <!-- Weekly Goal Progress -->
+        <div class="stats-row small animate-in" style="animation-delay:0.2s">
+          <div class="stat-card mini">
+            <div class="stat-label">Weekly P&L</div>
+            <div class="stat-value" id="weekly-pnl">£0.00</div>
+          </div>
+          <div class="stat-card mini">
+            <div class="stat-label">Weekly Goal</div>
+            <div class="stat-value" id="weekly-goal-progress">£0 / £700</div>
+          </div>
+          <div class="stat-card mini">
+            <div class="stat-label">Days Traded</div>
+            <div class="stat-value" id="weekly-days-traded">0 / 7</div>
+          </div>
+          <div class="stat-card mini">
+            <div class="stat-label">Goal Hit Days</div>
+            <div class="stat-value" id="weekly-goal-days">0</div>
+          </div>
+        </div>
+
+        <!-- Weekly Breakdown Cards -->
+        <div class="card animate-in" style="animation-delay:0.3s">
+          <div class="card-header">
+            <h2>Daily Breakdown</h2>
+          </div>
+          <div class="weekly-breakdown" id="weekly-breakdown">
+            <!-- Filled by JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== ANALYTICS VIEW ===== -->
+    <section id="view-analytics" class="view">
+      <div class="view-content">
+        <div class="stats-row">
+          <div class="stat-card animate-in">
+            <div class="stat-label">Win Rate</div>
+            <div class="stat-value" id="analytics-win-rate">0%</div>
+            <div class="stat-sub">of trading days</div>
+          </div>
+          <div class="stat-card animate-in" style="animation-delay:0.1s">
+            <div class="stat-label">Avg. Daily Profit</div>
+            <div class="stat-value" id="analytics-avg-profit">£0.00</div>
+            <div class="stat-sub">on winning days</div>
+          </div>
+          <div class="stat-card animate-in" style="animation-delay:0.2s">
+            <div class="stat-label">Avg. Daily Loss</div>
+            <div class="stat-value" id="analytics-avg-loss">£0.00</div>
+            <div class="stat-sub">on losing days</div>
+          </div>
+          <div class="stat-card animate-in" style="animation-delay:0.3s">
+            <div class="stat-label">Profit Factor</div>
+            <div class="stat-value" id="analytics-profit-factor">0.00</div>
+            <div class="stat-sub">gross profit / gross loss</div>
+          </div>
+        </div>
+
+        <!-- Best & Worst -->
+        <div class="stats-row small animate-in" style="animation-delay:0.4s">
+          <div class="stat-card mini best-day">
+            <div class="stat-label">🏆 Best Day</div>
+            <div class="stat-value" id="analytics-best-day">—</div>
+            <div class="stat-sub" id="analytics-best-day-date"></div>
+          </div>
+          <div class="stat-card mini worst-day">
+            <div class="stat-label">📉 Worst Day</div>
+            <div class="stat-value" id="analytics-worst-day">—</div>
+            <div class="stat-sub" id="analytics-worst-day-date"></div>
+          </div>
+          <div class="stat-card mini">
+            <div class="stat-label">Total Trades</div>
+            <div class="stat-value" id="analytics-total-trades">0</div>
+          </div>
+          <div class="stat-card mini">
+            <div class="stat-label">Total P&L</div>
+            <div class="stat-value" id="analytics-total-pnl">£0.00</div>
+          </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="charts-row">
+          <div class="chart-card half animate-in" style="animation-delay:0.5s">
+            <div class="card-header">
+              <h2>Win / Loss Ratio</h2>
+            </div>
+            <div class="chart-container square">
+              <canvas id="winloss-doughnut-chart"></canvas>
+            </div>
+          </div>
+          <div class="chart-card half animate-in" style="animation-delay:0.6s">
+            <div class="card-header">
+              <h2>Monthly Comparison</h2>
+            </div>
+            <div class="chart-container">
+              <canvas id="monthly-bar-chart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cumulative P&L Chart -->
+        <div class="chart-card animate-in" style="animation-delay:0.7s">
+          <div class="card-header">
+            <h2>Cumulative P&L</h2>
+          </div>
+          <div class="chart-container">
+            <canvas id="cumulative-line-chart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== SETTINGS VIEW ===== -->
+    <section id="view-settings" class="view">
+      <div class="view-content settings-content">
+        <!-- Goal Settings -->
+        <div class="card animate-in">
+          <div class="card-header">
+            <h2>🎯 Goal Settings</h2>
+          </div>
+          <div class="settings-body">
+            <div class="setting-row">
+              <label for="setting-daily-goal">Daily Target (£)</label>
+              <input type="number" id="setting-daily-goal" class="setting-input" value="100" min="1" step="1">
+            </div>
+            <div class="setting-row">
+              <label>Weekly Target</label>
+              <span class="setting-computed" id="setting-weekly-goal">£700 (7 × daily)</span>
+            </div>
+            <button class="btn-gold" id="btn-save-settings">Save Settings</button>
+          </div>
+        </div>
+
+        <!-- Data Management -->
+        <div class="card animate-in" style="animation-delay:0.1s">
+          <div class="card-header">
+            <h2>💾 Data Management</h2>
+          </div>
+          <div class="settings-body">
+            <div class="setting-row">
+              <label>Export Data</label>
+              <button class="btn-outline" id="btn-export">Download JSON Backup</button>
+            </div>
+            <div class="setting-row">
+              <label>Import Data</label>
+              <input type="file" id="import-file" accept=".json" class="setting-file-input">
+              <button class="btn-outline" id="btn-import">Import from JSON</button>
+            </div>
+            <div class="setting-row">
+              <label>Load Sample Data</label>
+              <button class="btn-outline" id="btn-load-sample">Load Demo Trades</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="card danger-card animate-in" style="animation-delay:0.2s">
+          <div class="card-header">
+            <h2>⚠️ Danger Zone</h2>
+          </div>
+          <div class="settings-body">
+            <div class="setting-row">
+              <label>Delete all trade data permanently</label>
+              <button class="btn-danger" id="btn-reset">Reset All Data</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ========== FLOATING ACTION BUTTON ========== -->
+  <button class="fab" id="fab-add-trade" title="Add Trade">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+
+  <!-- ========== TRADE MODAL ========== -->
+  <div class="modal" id="trade-modal">
+    <div class="modal-overlay" id="trade-modal-overlay"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="trade-modal-title">Add Trade</h2>
+        <button class="modal-close" id="trade-modal-close">✕</button>
+      </div>
+      <form id="trade-form">
+        <input type="hidden" id="trade-id" value="">
+        <!-- Trade Mode Toggle -->
+        <div class="trade-mode-toggle">
+          <button type="button" class="mode-btn active" data-mode="quick" id="mode-quick">Quick P&L</button>
+          <button type="button" class="mode-btn" data-mode="detailed" id="mode-detailed">Detailed Trade</button>
+        </div>
+
+        <!-- Common Fields -->
+        <div class="form-group">
+          <label for="trade-date">Date</label>
+          <input type="date" id="trade-date" required>
+        </div>
+
+        <!-- Quick Mode Fields -->
+        <div class="form-fields quick-fields" id="quick-fields">
+          <div class="form-group">
+            <label for="trade-amount">Profit / Loss (£)</label>
+            <input type="number" id="trade-amount" step="0.01" placeholder="e.g. 85.50 or -42.00" required>
+            <span class="form-hint">Positive for profit, negative for loss</span>
+          </div>
+        </div>
+
+        <!-- Detailed Mode Fields -->
+        <div class="form-fields detailed-fields hidden" id="detailed-fields">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="trade-direction">Direction</label>
+              <select id="trade-direction">
+                <option value="buy">Buy (Long)</option>
+                <option value="sell">Sell (Short)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="trade-lots">Lot Size</label>
+              <input type="number" id="trade-lots" step="0.01" min="0.01" value="0.10" placeholder="0.10">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="trade-entry">Entry Price</label>
+              <input type="number" id="trade-entry" step="0.01" placeholder="e.g. 2350.50">
+            </div>
+            <div class="form-group">
+              <label for="trade-exit">Exit Price</label>
+              <input type="number" id="trade-exit" step="0.01" placeholder="e.g. 2355.00">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Calculated P&L</label>
+            <div class="calculated-pnl" id="calculated-pnl">£0.00</div>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="form-group">
+          <label for="trade-notes">Notes (optional)</label>
+          <textarea id="trade-notes" rows="2" placeholder="e.g. Breakout on 1H chart..."></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-outline" id="trade-cancel">Cancel</button>
+          <button type="submit" class="btn-gold" id="trade-submit">Add Trade</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========== CONFIRM MODAL ========== -->
+  <div class="modal" id="confirm-modal">
+    <div class="modal-overlay" id="confirm-modal-overlay"></div>
+    <div class="modal-content small">
+      <div class="modal-header">
+        <h2 id="confirm-modal-title">Confirm</h2>
+        <button class="modal-close" id="confirm-modal-close">✕</button>
+      </div>
+      <p id="confirm-modal-message">Are you sure?</p>
+      <div class="form-actions">
+        <button class="btn-outline" id="confirm-cancel">Cancel</button>
+        <button class="btn-danger" id="confirm-ok">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TOAST NOTIFICATION ========== -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
